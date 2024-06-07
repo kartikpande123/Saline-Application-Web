@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saline Bottle Monitor</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-analytics.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-database.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOVLTyV5KM0TPxSSa-uSULFnaY6fYPHCU",
+      authDomain: "saline-level-monitoring-server.firebaseapp.com",
+      databaseURL: "https://saline-level-monitoring-server-default-rtdb.firebaseio.com",
+      projectId: "saline-level-monitoring-server",
+      storageBucket: "saline-level-monitoring-server.appspot.com",
+      messagingSenderId: "272472581590",
+      appId: "1:272472581590:web:46d587199911f80c467077",
+      measurementId: "G-VM2VWVEML6"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const database = getDatabase(app);
+
+    // Flag to track modal state
+    let modalShown = false;
+    // Variables to track saline start and end times for each patient
+    let salineTimes = [
+      { start: null, end: null },
+      { start: null, end: null },
+      { start: null, end: null }
+    ];
+    // Track if saline level hit 7%
+    let salineLevelHitSeven = false;
+
+    // Function to fetch data from Firebase in real-time
+    function fetchDataFromFirebase() {
+      const dataRef = ref(database, "/Monitoringdata");
+
+      onValue(
+        dataRef,
+        (snapshot) => {
+          const data = snapshot.val();
+          console.log("Data fetched successfully:", JSON.stringify(data, null, 2));
+          processSalineData(data);
+        },
+        (error) => {
+          console.error("Error fetching data:", error);
+        }
+      );
+    }
+
+    function processSalineData(data) {
+      if (typeof data === "number") {
+        console.log("Processing Monitoringdata:", JSON.stringify(data, null, 2));
+        updateUI("Monitoringdata", data);
+
+        // Assuming 'data' is the connection status (true for connected, false for not connected)
+        updateConnectionStatus(0, data); // Update connection status for the first container
+      } else {
+        console.log("Monitoringdata not found in data:", JSON.stringify(data, null, 2));
+
+        // If data is null, update connection status to not connected
+        updateConnectionStatus(0, false); // Update connection status for the first container
+      }
+    }
+
+    // Function to update connection status text
+    function updateConnectionStatus(index, isConnected) {
+      if (salineLevelHitSeven) return; // Stop further updates if level hit 7%
+
+      const containers = document.querySelectorAll(".container");
+      const container = containers[index];
+      const connectionStatusElement = container.querySelector(".cntText p");
+
+      if (isConnected) {
+        connectionStatusElement.innerHTML =
+          "<h5 class='high5'>✔️</h5><p class='pc'>Connected</p>";
+
+        // Set the start time when connected
+        if (!salineTimes[index].start) {
+          salineTimes[index].start = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          updateSalineTimes(index);
+        }
+      } else {
+        connectionStatusElement.innerHTML =
+          "<h5 class='high5'>❌</h5><p class='pc'>Not Connected</p>";
+
+        // Set the end time when not connected
+        salineTimes[index].end = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        updateSalineTimes(index);
+      }
+    }
+
+    // Function to announce text using Web Speech API
+    function announceText(text) {
+      if ("speechSynthesis" in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(utterance);
+      } else {
+        console.log("Speech synthesis not supported in this browser.");
+      }
+    }
+
+    // Function to update the UI based on the fetched data
+    function updateUI(type, data) {
+      const patientIndex = "1"; // Assuming only one patient for Monitoringdata
+      const fillElement = document.getElementById(`fill${patientIndex}`);
+      const percentageDisplayElement = document.getElementById(`percentage${patientIndex}`);
+      const containerElement = document.getElementById(`container${patientIndex}`);
+
+      if (fillElement && percentageDisplayElement && containerElement) {
+        const fillPercentage = (data / 535) * 100;
+        fillElement.style.width = `${fillPercentage}%`;
+        percentageDisplayElement.textContent = `${fillPercentage.toFixed(2)}%`;
+
+        if (fillPercentage <= 7) {
+          if (!salineTimes[patientIndex - 1].end) {
+            salineTimes[patientIndex - 1].end = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            updateSalineTimes(patientIndex - 1);
+            stopAllFunctionalities();
+            fillElement.style.backgroundColor = "red";
+          }
+          return; // Stop updating UI if level hit 7% or lower
+        } else if (fillPercentage <= 18) {
+          if (!modalShown) {
+            // announceText("Less Saline Level");
+            fillElement.style.backgroundColor = "red";
+            document.getElementById("adil").classList.add("blinking");
+            showModal();
+            modalShown = true;
+          }
+        } else if (fillPercentage <= 25) {
+          fillElement.style.backgroundColor = "red";
+          fillElement.classList.add("blinking");
+          containerElement.classList.add("blinking");
+        } else if (fillPercentage <= 50) {
+          fillElement.style.backgroundColor = "yellow";
+          fillElement.classList.remove("blinking");
+          containerElement.classList.remove("blinking");
+        } else {
+          fillElement.style.backgroundColor = "#00ff00";
+          fillElement.classList.remove("blinking");
+          containerElement.classList.remove("blinking");
+        }
+      }
+    }
+
+    // Function to stop all functionalities
+    function stopAllFunctionalities() {
+      const fillElement = document.getElementById(`fill1`);
+      const containerElement = document.getElementById(`container1`);
+
+      fillElement.classList.remove("blinking");
+      containerElement.classList.remove("blinking");
+      document.getElementById("adil").classList.remove("blinking");
+      closeModal();
+      salineLevelHitSeven = true; // Set flag to stop further updates
+    }
+
+    // Function to update the saline start and end times in the UI
+    function updateSalineTimes(index) {
+      const timeElement = document.getElementById(`salineTimes${index + 1}`);
+      if (timeElement) {
+        timeElement.innerHTML = `
+          <p>Start: ${salineTimes[index].start || "N/A"}</p>
+          <p>End: ${salineTimes[index].end || "N/A"}</p>
+        `;
+      }
+    }
+
+    function showModal() {
+      document.getElementById("customAlert").style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("customAlert").style.display = "none";
+      document.getElementById("adil").classList.remove("blinking");
+      document.querySelectorAll(".container").forEach((container) => {
+        container.classList.remove("blinking");
+      });
+      document.querySelectorAll(".fill").forEach((fill) => {
+        fill.classList.remove("blinking");
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", (event) => {
+      const closeButton = document.getElementById("close");
+      closeButton.addEventListener("click", closeModal);
+
+      // Start fetching data from Firebase
+      fetchDataFromFirebase();
+    });
+  </script>
+</head>
+
+<body id="adil">
+  <div id="header">
+    <img src="logo.jpg" alt="logo" />
+    <div class="head">
+        <img src="spdand2.jpg" alt="sarpdand">
+          <div class="text">
+            <h2> SDM Engineering College</h2>
+          <h3>Advance Saline Monitoring</h3>
+          </div>
+        <img src="spdand2.jpg" alt="sarpdand">
+    </div>
+    <div class="clock">
+      <div id="time"></div>
+      <div id="date"></div>
+    </div>
+  </div>
+
+  <div class="container" id="container1">
+    <div class="monitor" id="patient1">
+      <h4>Patient - 01</h4>
+      <div class="meter">
+        <div class="fill" id="fill1"></div>
+      </div>
+      <div class="hor"></div>
+      <div class="percentage" id="percentage1">00%</div>
+      <div class="salineTimes" id="salineTimes1">
+        <p>Start: N/A</p>
+        <p>End: N/A</p>
+      </div>
+    </div>
+    <div class="cntText">
+      <h5></h5>
+      <p></p>
+    </div>
+  </div>
+
+  <div class="container" id="container2">
+    <div class="monitor monitor2" id="patient2">
+      <h4>Patient - 02</h4>
+      <div class="meter meter2">
+        <div class="fill fill2" id="fill2"></div>
+      </div>
+      <div class="percentage" id="percentage2">00%</div>
+      <div class="salineTimes" id="salineTimes2">
+        <p>Start: N/A</p>
+        <p>End: N/A</p>
+      </div>
+    </div>
+    <div class="cntText">
+      <h5></h5>
+      <p></p>
+    </div>
+  </div>
+
+  <div class="container" id="container3">
+    <div class="monitor monitor2" id="patient3">
+      <h4>Patient - 03</h4>
+      <div class="meter meter2">
+        <div class="fill fill2" id="fill3"></div>
+      </div>
+      <div class="percentage" id="percentage3">00%</div>
+      <div class="salineTimes" id="salineTimes3">
+        <p>Start: N/A</p>
+        <p>End: N/A</p>
+      </div>
+    </div>
+    <div class="cntText">
+      <h5></h5>
+      <p></p>
+    </div>
+  </div>
+
+  <div id="customAlert" class="modal">
+    <div class="modal-content">
+      <span class="close" id="close" onclick="closeModal()">&times;</span>
+      <h1 id="p1">Patient - 01</h1>
+      <p>Warning: Low Saline Level!</p>
+    </div>
+  </div>
+
+  <div class="add" id="add">
+    <button>Add</button>
+  </div>
+
+  <button id="enableSpeechSynthesis">Enable Speech Synthesis</button>
+
+  <script src="clock.js"></script>
+</body>
+</html>
