@@ -33,7 +33,7 @@ body {
 
 .monitor h4 {
   border-radius: 10px;
-  font-size: 21px
+  font-size: 21px;
 }
 
 .meter {
@@ -71,7 +71,7 @@ h1 {
     opacity: 1;
   }
   50% {
-    opacity: 0;
+    opacity: 0.5;
   }
   100% {
     opacity: 1;
@@ -87,7 +87,7 @@ h1 {
     opacity: 1;
   }
   50% {
-    opacity: 0;
+    opacity: 0.5;
   }
   100% {
     opacity: 1;
@@ -122,7 +122,7 @@ h1 {
   color: white;
 }
 
-#p1{
+#p1 {
   color: white;
 }
 
@@ -150,53 +150,50 @@ h1 {
   gap: 3px;
 }
 
-
-#btn{
+#btn {
   width: 40px;
   margin: auto;
 }
 
-#head{
+#head {
   font-size: 45px;
 }
 
-
 /* header */
 
-#time{
+#time {
   font-size: 2.2rem;
 }
 
-#date{
+#date {
   font-size: 1.3rem;
 }
 
-.clock{
+.clock {
   display: flex;
   flex-direction: column;
   align-items: center;
   row-gap: 1rem;
 }
 
-.add{
+.add {
   width: 100px;
   height: 50px;
 }
 
-.add button{
+.add button {
   width: 100%;
   height: 100%;
   margin-top: 30px;
   margin-left: 50px;
   margin-bottom: 30px;
   border-radius: 10px;
-  background:rgb(126, 126, 222) ;
+  background: rgb(126, 126, 222);
   font-size: 20px;
 }
-.add button:hover{
+.add button:hover {
   background: #66a2e7;
 }
-
 
 /* Add your existing styles here */
 
@@ -218,7 +215,7 @@ h1 {
   background-color: red;
 }
 
-#enableSpeechSynthesis{
+#enableSpeechSynthesis {
   display: none;
 }
 
@@ -231,7 +228,7 @@ h1 {
   gap: 3px;
 }
 
-.cntText h5{
+.cntText h5 {
   text-align: center;
 }
 
@@ -241,8 +238,7 @@ h1 {
   font-size: 30px;
 }
 
-
-#header{
+#header {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -250,25 +246,24 @@ h1 {
   gap: 5rem;
 }
 
-#header img{
-  width: 200px;
-  height: 200px;
+#header img {
+  width: 190px;
+  height: 190px;
 }
 
-#header h2{
+#header h2 {
   color: white;
   font-size: 2.2rem;
   text-align: center;
   width: 435px;
   /* margin-left: 50px; */
 }
-#header h3{
+#header h3 {
   text-align: center;
   color: white;
 }
 
-
-#header .head{
+#header .head {
   display: flex;
   border: 1px solid black;
   align-items: center;
@@ -278,7 +273,7 @@ h1 {
   background-color: #7c0200;
 }
 
-#header .head img{
+#header .head img {
   width: 70px;
   height: 100px;
   padding-left: 20px;
@@ -286,7 +281,14 @@ h1 {
   background-color: #7c0200;
 }
 
-.salineTimes{
+.salineTimes {
   display: flex;
-  gap: 20px;
+  gap: 50px;
+  justify-content: center;
+  align-items: center;
+}
+
+#dp {
+  margin-left: 60px;
+  font-style: bold;
 }

@@ -4,18 +4,20 @@ const FIREBASE_HOST =
   "https://saline-level-monitoring-server-default-rtdb.firebaseio.com";
 const FIREBASE_AUTH = "63XsfziiFUKSfiv7HccwGizwRimnjmspbDldBEFv";
 
+// Example initial fake data values
 const initialData = {
-  patient1: null,
-  patient2:{level: 500.0, connected: true } ,
-  patient3: null,
-  patient4: null,
+  Monitoringdata1: 420.0,
+  Monitoringdata2: 590.0,
+  Monitoringdata3: 350.0,
+  Monitoringdata4: 420.0,
+  Monitoringdata5: 480.0,
 };
 
 function pushInitialData() {
   axios
     .put(
-      `${FIREBASE_HOST}/salineMonitor.json?auth=${FIREBASE_AUTH}`,
-      initialData
+      `${FIREBASE_HOST}/Monitoringdata.json?auth=${FIREBASE_AUTH}`,
+      JSON.stringify(initialData) // Convert initial data to JSON string
     )
     .then((response) => {
       console.log("Initial data written successfully:", response.data);
@@ -29,31 +31,38 @@ function pushInitialData() {
 function simulateSalineDecrease() {
   setInterval(() => {
     axios
-      .get(`${FIREBASE_HOST}/salineMonitor.json?auth=${FIREBASE_AUTH}`)
+      .get(`${FIREBASE_HOST}/Monitoringdata.json?auth=${FIREBASE_AUTH}`)
       .then((response) => {
-        const data = response.data;
-        if (data) {
-          Object.keys(data).forEach((key) => {
-            let newLevel = data[key].level - Math.random() * 50; // Decrease by a random amount up to 5 ml
-            if (newLevel < 0) newLevel = 0;
-            axios
-              .patch(
-                `${FIREBASE_HOST}/salineMonitor/${key}.json?auth=${FIREBASE_AUTH}`,
-                { level: newLevel.toFixed(1) }
-              )
-              .then((response) => {
-                console.log(`Updated level for ${key}: ${newLevel.toFixed(1)}`);
-              })
-              .catch((error) => {
-                console.log(`Error updating level for ${key}:`, error);
-              });
-          });
+        let currentData = response.data;
+        let updates = {};
+
+        for (let key in currentData) {
+          if (currentData.hasOwnProperty(key)) {
+            let currentLevel = currentData[key];
+            if (typeof currentLevel === "number" && !isNaN(currentLevel)) {
+              let newLevel = currentLevel - Math.random() * 50; // Decrease by a random amount up to 50 units
+              if (newLevel < 0) newLevel = 0;
+              updates[key] = newLevel;
+            }
+          }
         }
+
+        axios
+          .patch(
+            `${FIREBASE_HOST}/Monitoringdata.json?auth=${FIREBASE_AUTH}`,
+            JSON.stringify(updates) // Convert updates to JSON string
+          )
+          .then((response) => {
+            console.log("Updated levels:", updates);
+          })
+          .catch((error) => {
+            console.log("Error updating levels:", error);
+          });
       })
       .catch((error) => {
         console.log("Error fetching data:", error);
       });
-  }, 10000); // Update every 10 seconds
+  }, 5000); // Update every 5 seconds
 }
 
 pushInitialData();
