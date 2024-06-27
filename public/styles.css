@@ -12,7 +12,15 @@ body {
   align-items: center;
   padding-top: 8px;
   padding-left: 20px;
+  position: relative;
+  transition: transform 0.5s ease-in-out;
 }
+
+/* Optional: You may need to add a specific class to enable/disable transitions for some scenarios */
+.container.transitioning {
+  transition: transform 0.5s ease-in-out;
+}
+
 
 .monitor {
   width: 77%;
@@ -230,6 +238,7 @@ h1 {
 
 .cntText h5 {
   text-align: center;
+  font-size: 18px;
 }
 
 .container .percentage {
@@ -247,8 +256,8 @@ h1 {
 }
 
 #header img {
-  width: 190px;
-  height: 190px;
+  width: 130px;
+  height: 150px;
 }
 
 #header h2 {
@@ -286,9 +295,40 @@ h1 {
   gap: 50px;
   justify-content: center;
   align-items: center;
+  font-weight: 700;
 }
 
 #dp {
   margin-left: 60px;
   font-style: bold;
+}
+
+
+#salineConnected{
+  width: 100%;
+  height: 110px;
+  border: 1px solid black;
+  margin-bottom: 17px;
+  margin-top: 17px;
+}
+
+#salineConnected h3{
+  text-align: center;
+}
+
+#salineConnected .patients{
+  display: flex;
+}
+
+.patients .p{
+  width: 48px;
+  height: 50px;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* background-color: rgb(109, 238, 109); */
+  color:#fff;
+  margin: auto;
+  font-weight: bold;
 }

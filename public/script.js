@@ -47,6 +47,7 @@ function fetchDataFromFirebase() {
       const data = snapshot.val();
       console.log("Data fetched successfully:", JSON.stringify(data, null, 2));
       processSalineData(data);
+      updateBlockColors(data);
     },
     (error) => {
       console.error("Error fetching data:", error);
@@ -63,6 +64,7 @@ function processSalineData(data) {
     Monitoringdata3: 3,
     Monitoringdata4: 4,
     Monitoringdata5: 5,
+    Monitoringdata6: 6,
   };
 
   Object.keys(data).forEach((key) => {
@@ -73,26 +75,8 @@ function processSalineData(data) {
         `Processing data for patient ${patientIndex}: ${patientDataValue}`
       );
       updateUI(patientIndex, patientDataValue);
-
-      // Assuming 'patientDataValue' is the connection status (true for connected, false for not connected)
-      updateConnectionStatus(patientIndex, patientDataValue);
     }
   });
-}
-
-// Function to update connection status text
-function updateConnectionStatus(index, isConnected) {
-  const containers = document.querySelectorAll(".container");
-  const container = containers[index - 1];
-  const connectionStatusElement = container.querySelector(".cntText p");
-
-  if (isConnected) {
-    connectionStatusElement.innerHTML =
-      "<h5 class='high5'>✔️</h5><p class='pc'>Connected</p>";
-  } else {
-    connectionStatusElement.innerHTML =
-      "<h5 class='high5'>❌</h5><p class='pc'>Not Connected</p>";
-  }
 }
 
 // Function to update the UI based on the fetched data
@@ -107,6 +91,7 @@ function updateUI(patientIndex, data) {
   const predictionTimeElement = document.getElementById(
     `predictionTime${patientIndex}`
   );
+  const connectionStatusElement = document.getElementById(`status${patientIndex}`); // New status element
 
   if (!patientData[patientIndex]) {
     patientData[patientIndex] = {
@@ -213,6 +198,10 @@ function updateUI(patientIndex, data) {
       fillElement.classList.remove("blinking");
       containerElement.classList.remove("blinking");
     }
+
+    // Update connection status
+    updateConnectionStatus(fillPercentage, connectionStatusElement);
+
     handleModalAndBlinking(
       patientIndex,
       fillPercentage,
@@ -228,6 +217,9 @@ function updateUI(patientIndex, data) {
     consumptionRate,
     lastUpdateTime,
   };
+
+  // Rearrange the containers after updating the UI
+  rearrangeContainers();
 }
 
 // Function to handle modal and blinking functionality
@@ -246,9 +238,14 @@ function handleModalAndBlinking(patientIndex, fillPercentage, fillElement, conta
       }, 5000);
     }
   }
+  if (fillPercentage == 100) {
+    modalShown[patientIndex] = false;
+    document.getElementById("adil").classList.remove("blinking");
+    closeModal(patientIndex);
+  }
 }
 
-// Function to show the modal with a queue to handle multiple alerts
+// Function to show the modal
 function showModal(patientIndex) {
   console.log(`Showing modal for patient ${patientIndex}`);
   modalQueue.push(patientIndex);
@@ -257,10 +254,11 @@ function showModal(patientIndex) {
   }
 }
 
+// Function to display the next modal in the queue
 function displayNextModal() {
   if (modalQueue.length > 0) {
-    const patientIndex = modalQueue.shift();
     modalVisible = true;
+    const patientIndex = modalQueue.shift();
     const modal = document.getElementById("customAlert");
     const modalMessage = document.getElementById("p1");
 
@@ -295,6 +293,88 @@ function stopAllFunctionalities(patientIndex) {
   const containerElement = document.getElementById(`container${patientIndex}`);
   fillElement.classList.remove("blinking");
   containerElement.classList.remove("blinking");
+}
+
+// Function to update connection status
+function updateConnectionStatus(fillPercentage, statusElement) {
+  if (fillPercentage === 0) {
+    statusElement.textContent = "Not Connected ❌";
+  } else {
+    statusElement.textContent = "Connected ✔️";
+  }
+}
+
+
+// Function to update block colors based on the data
+function updateBlockColors(data) {
+  Object.keys(data).forEach((key) => {
+    const patientIndex = key.replace('Monitoringdata', '');
+    const firebaseData = data[key];
+    const blockElement = document.getElementById(`pp${patientIndex}`);
+    if (blockElement) {
+      if (firebaseData === 0) {
+        blockElement.style.backgroundColor = "red";
+      } else {
+        blockElement.style.backgroundColor ="rgb(109, 238, 109)";
+      }
+    }
+  });
+}
+
+
+// Arrange containers according to data
+function rearrangeContainers() {
+  const containerElements = document.querySelectorAll(".container");
+  const containerArray = Array.from(containerElements);
+
+  // Extract saline levels and their corresponding container elements
+  const containerData = containerArray.map((container, index) => {
+    const fillElement = container.querySelector(`.fill`);
+    const percentage = parseFloat(fillElement.style.width) || 0;
+    return {
+      element: container,
+      percentage: percentage,
+      index: index,
+    };
+  });
+
+  // Sort containers by saline level percentage, placing 0% at the end
+  containerData.sort((a, b) => {
+    if (a.percentage === 0) return 1;
+    if (b.percentage === 0) return -1;
+    return a.percentage - b.percentage;
+  });
+
+  // Check if the order has changed
+  let orderChanged = false;
+  containerData.forEach((data, index) => {
+    if (data.index !== index) {
+      orderChanged = true;
+    }
+  });
+
+  if (orderChanged) {
+    // Apply a temporary class to enable transition
+    containerArray.forEach((container) => {
+      container.classList.add("transitioning");
+    });
+
+    // Rearrange the containers in the HTML with smooth transition
+    const parent = containerArray[0].parentElement;
+    containerData.forEach((data, index) => {
+      // Set the transform property to smoothly transition to new position
+      data.element.style.transform = `translateY(${index * 100}px)`;
+    });
+
+    // After the transition ends, reset the transform property and actual positions
+    setTimeout(() => {
+      containerData.forEach((data) => {
+        data.element.style.transform = "";
+        parent.appendChild(data.element);
+        data.element.classList.remove("transitioning");
+      });
+    }, 500); // Duration should match the CSS transition duration
+  }
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {

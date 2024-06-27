@@ -11,6 +11,7 @@ const initialData = {
   Monitoringdata3: 350.0,
   Monitoringdata4: 420.0,
   Monitoringdata5: 480.0,
+  Monitoringdata6: 550.0,
 };
 
 function pushInitialData() {
