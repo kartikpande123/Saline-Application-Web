@@ -25,7 +25,7 @@ const analytics = getAnalytics(app);
 const database = getDatabase(app);
 
 const MAX_VALUE = 560; // Define the maximum value for 100%
-const BOTTLE_WEIGHT = 38; // Define the bottle weight
+const BOTTLE_WEIGHT = 30; // Define the bottle weight
 
 // Object to store previous data values and times for each patient
 let patientData = {};
@@ -314,11 +314,14 @@ function updateBlockColors(data) {
     if (blockElement) {
       if (firebaseData <= 2) {
         blockElement.style.backgroundColor = "white";
-      } else if(firebaseData <= 38){
+      } else if(firebaseData <= 30){
         blockElement.style.backgroundColor ="red";
       } else{
         blockElement.style.backgroundColor ="rgb(109, 238, 109)";
       }
+    }
+    if(firebaseData<=30){
+      fillPercentage = 0;
     }
   });
 }
