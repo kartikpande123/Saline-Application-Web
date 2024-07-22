@@ -69,7 +69,6 @@ function updateUI(data) {
 
       if (percentage === 0) {
         predictionTime = 'N/A';
-        startTime = "N/A";
       }
 
       fillElement.style.width = `${percentage}%`;
