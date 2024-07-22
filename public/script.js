@@ -24,30 +24,21 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const database = getDatabase(app);
 
-const MAX_VALUE = 560; // Define the maximum value for 100%
-const BOTTLE_WEIGHT = 38; // Define the bottle weight
-
-// Object to store previous data values and times for each patient
-let patientData = {};
-
-// Object to store modal state for each patient
-let modalShown = {};
-
-// Queue and flag to handle modal display
-let modalQueue = [];
-let modalVisible = false;
+const patientData = {}; // Object to store patient data
+const modalShown = {}; // Object to store modal state for each patient
+const modalQueue = []; // Queue for modal display
+let modalVisible = false; // Flag for modal visibility
 
 // Function to fetch data from Firebase in real-time
 function fetchDataFromFirebase() {
-  const dataRef = ref(database, "/Monitoringdata");
+  const dataRef = ref(database, "/");
 
   onValue(
     dataRef,
     (snapshot) => {
       const data = snapshot.val();
       console.log("Data fetched successfully:", JSON.stringify(data, null, 2));
-      processSalineData(data);
-      updateBlockColors(data);
+      updateUI(data);
     },
     (error) => {
       console.error("Error fetching data:", error);
@@ -55,177 +46,68 @@ function fetchDataFromFirebase() {
   );
 }
 
-// Function to process saline data for all patients
-function processSalineData(data) {
-  // Explicitly map each Monitoringdata key to a specific patient
-  const patientMapping = {
-    Monitoringdata1: 1,
-    Monitoringdata2: 2,
-    Monitoringdata3: 3,
-    Monitoringdata4: 4,
-    Monitoringdata5: 5,
-    Monitoringdata6: 6,
-  };
-
-  Object.keys(data).forEach((key) => {
-    const patientIndex = patientMapping[key];
-    if (patientIndex) {
-      const patientDataValue = data[key];
-      console.log(
-        `Processing data for patient ${patientIndex}: ${patientDataValue}`
-      );
-      updateUI(patientIndex, patientDataValue);
-    }
-  });
-}
-
 // Function to update the UI based on the fetched data
-function updateUI(patientIndex, data) {
-  const fillElement = document.getElementById(`fill${patientIndex}`);
-  const percentageDisplayElement = document.getElementById(
-    `percentage${patientIndex}`
-  );
-  const containerElement = document.getElementById(`container${patientIndex}`);
-  const startTimeElement = document.getElementById(`start${patientIndex}`);
-  const endTimeElement = document.getElementById(`end${patientIndex}`);
-  const predictionTimeElement = document.getElementById(
-    `predictionTime${patientIndex}`
-  );
-  const connectionStatusElement = document.getElementById(`status${patientIndex}`); // New status element
+function updateUI(data) {
+  for (let i = 1; i <= 7; i++) {
+    const fillElement = document.getElementById(`fill${i}`);
+    const percentageDisplayElement = document.getElementById(`percentage${i}`);
+    const startTimeElement = document.getElementById(`start${i}`);
+    const endTimeElement = document.getElementById(`end${i}`);
+    const predictionTimeElement = document.getElementById(`predictionTime${i}`);
+    const connectionStatusElement = document.getElementById(`status${i}`);
 
-  if (!patientData[patientIndex]) {
-    patientData[patientIndex] = {
-      previousData: 0,
-      startTime: null,
-      endTime: null,
-      consumptionRate: 0,
-      lastUpdateTime: null,
-    };
-  }
+    if (fillElement && percentageDisplayElement && startTimeElement && endTimeElement && predictionTimeElement && connectionStatusElement) {
+      const monitoringData = data.Monitoringdata[`Monitoringdata${i}`] || 0;
+      const percentage = data.PERCENTAGE[`percentage${i}`] || 0;
+      let startTime = data.START_TIME[`Start_time${i}`] || 'N/A';
+      let predictionTime = data.PREDICTION_TIME[`prediction_time${i}`] || 'N/A';
+      let endTime = 'N/A'; // Default end time to 'N/A'
 
-  if (!modalShown[patientIndex]) {
-    modalShown[patientIndex] = false;
-  }
+      if (percentage === 0) {
+        endTime = data.VEND_TIME[`Vend_time${i}`] || 'N/A';
+      }
 
-  let { previousData, startTime, endTime, consumptionRate, lastUpdateTime } =
-    patientData[patientIndex];
+      if (percentage === 0) {
+        predictionTime = 'N/A';
+      }
 
-  if (fillElement && percentageDisplayElement && containerElement) {
-    // Subtract the bottle weight from the fetched data
-    let adjustedData = data - BOTTLE_WEIGHT;
+      fillElement.style.width = `${percentage}%`;
+      percentageDisplayElement.textContent = `${percentage.toFixed(2)}%`;
+      startTimeElement.textContent = `Start: ${startTime}`;
+      endTimeElement.textContent = `End: ${endTime}`;
+      predictionTimeElement.textContent = `Prediction Time: ${predictionTime}`;
 
-    // Calculate the fill percentage based on adjusted data
-    let fillPercentage;
+      // Update connection status
+      if (percentage <= 0) {
+        connectionStatusElement.textContent = "Not Connected ❌";
+      } else {
+        connectionStatusElement.textContent = "Connected ✔️";
+      }
 
-    // If the adjusted data is greater than 0
-    if (adjustedData > 0) {
-      // Check if the previous data was 0 or less than the bottle weight
-      if (previousData <= BOTTLE_WEIGHT) {
-        fillPercentage = 100; // Set the fill percentage to 100%
-        if (!startTime || endTime) {
-          startTime = new Date(); // Set the start time only once
-          endTime = null; // Reset end time
-          lastUpdateTime = startTime;
-          console.log("Start time set:", startTime);
+      handleModalAndBlinking(i, percentage, fillElement);
+
+      // Update block colors
+      const blockElement = document.getElementById(`pp${i}`);
+      if (blockElement) {
+        if (monitoringData <= 2) {
+          blockElement.style.backgroundColor = "white";
+        } else if (monitoringData <= 38) {
+          blockElement.style.backgroundColor = "red";
+        } else {
+          blockElement.style.backgroundColor = "rgb(109, 238, 109)";
         }
-      } else {
-        fillPercentage = Math.min((adjustedData / MAX_VALUE) * 100, 100);
-      }
-    } else {
-      fillPercentage = 0; // Set the fill percentage to 0 if the data is less than or equal to the bottle weight
-      if (!endTime) {
-        endTime = new Date(); // Set the end time only once
-        console.log("End time set:", endTime);
       }
     }
-
-    // Update the previous data value
-    previousData = data;
-
-    fillElement.style.width = `${fillPercentage}%`;
-    percentageDisplayElement.textContent = `${fillPercentage.toFixed(2)}%`;
-
-    console.log(`Patient ${patientIndex} fill percentage: ${fillPercentage}%`);
-
-    if (startTime && startTimeElement) {
-      startTimeElement.textContent = `Start: ${startTime.toLocaleTimeString()}`;
-    }
-
-    if (endTime && endTimeElement) {
-      endTimeElement.textContent = `End: ${endTime.toLocaleTimeString()}`;
-    } else if (startTime && !endTime) {
-      endTimeElement.textContent = "End: N/A";
-    }
-
-    // Prediction Logic
-    if (startTime && !endTime && adjustedData > 0) {
-      const currentTime = new Date();
-      const timeElapsed = (currentTime - lastUpdateTime) / 1000; // Time elapsed in seconds since last update
-      const consumptionSinceLastUpdate = previousData - adjustedData; // Consumption since last update
-
-      // Update consumption rate if there is a change in data
-      if (consumptionSinceLastUpdate > 0) {
-        consumptionRate = consumptionSinceLastUpdate / timeElapsed; // Consumption rate in units per second
-        lastUpdateTime = currentTime; // Update the last update time
-      }
-      if (consumptionRate > 0) {
-        const remainingTime = adjustedData / consumptionRate; // Remaining time in seconds
-        const predictedEndTime = new Date(
-          currentTime.getTime() + remainingTime * 1000
-        );
-
-        predictionTimeElement.textContent = `Prediction Time: ${predictedEndTime.toLocaleTimeString()}`;
-      } else {
-        predictionTimeElement.textContent = "Prediction Time: Calculating..."; // Show "Calculating..." until a valid prediction time is calculated
-      }
-    } else {
-      predictionTimeElement.textContent = "Prediction Time: N/A";
-    }
-
-    if (adjustedData <= BOTTLE_WEIGHT) {
-      stopAllFunctionalities(patientIndex);
-      fillElement.style.backgroundColor = "red";
-    } else if (fillPercentage <= 25) {
-      fillElement.style.backgroundColor = "red";
-      fillElement.classList.add("blinking");
-      containerElement.classList.add("blinking");
-    } else if (fillPercentage <= 50) {
-      fillElement.style.backgroundColor = "yellow";
-      fillElement.classList.remove("blinking");
-      containerElement.classList.remove("blinking");
-    } else {
-      fillElement.style.backgroundColor = "#00ff00";
-      fillElement.classList.remove("blinking");
-      containerElement.classList.remove("blinking");
-    }
-
-    // Update connection status
-    updateConnectionStatus(fillPercentage, connectionStatusElement);
-
-    handleModalAndBlinking(
-      patientIndex,
-      fillPercentage,
-      fillElement,
-      containerElement
-    );
   }
-
-  patientData[patientIndex] = {
-    previousData,
-    startTime,
-    endTime,
-    consumptionRate,
-    lastUpdateTime,
-  };
-
-  // Rearrange the containers after updating the UI
   rearrangeContainers();
 }
 
 // Function to handle modal and blinking functionality
-function handleModalAndBlinking(patientIndex, fillPercentage, fillElement, containerElement) {
+function handleModalAndBlinking(patientIndex, fillPercentage, fillElement) {
+  const containerElement = document.getElementById(`container${patientIndex}`);
   console.log(`Handling modal and blinking for patient ${patientIndex} with fill percentage ${fillPercentage}%`);
-  if (fillPercentage <= 15 && fillPercentage >= 1) {
+
+  if (fillPercentage <= 15 && fillPercentage > 0) {
     fillElement.style.backgroundColor = "red";
     fillElement.classList.add("blinking");
     containerElement.classList.add("blinking");
@@ -237,7 +119,21 @@ function handleModalAndBlinking(patientIndex, fillPercentage, fillElement, conta
         closeModal(patientIndex);
       }, 5000);
     }
+  } else if (fillPercentage <= 25 && fillPercentage > 0) {
+    fillElement.style.backgroundColor = "red";
+    containerElement.classList.add("blinking");
+    fillElement.classList.remove("blinking");
+  } else if (fillPercentage <= 50) {
+    fillElement.style.backgroundColor = "yellow";
+    fillElement.classList.remove("blinking");
+    containerElement.classList.remove("blinking");
+  } else {
+    fillElement.style.backgroundColor = "#00ff00";
+    fillElement.classList.remove("blinking");
+    containerElement.classList.remove("blinking");
+    modalShown[patientIndex] = false;
   }
+
   if (fillPercentage == 100) {
     modalShown[patientIndex] = false;
     document.getElementById("adil").classList.remove("blinking");
@@ -273,7 +169,7 @@ function displayNextModal() {
 }
 
 // Function to close the modal
-function closeModal() {
+function closeModal(patientIndex = null) {
   console.log("Closing modal");
   const modal = document.getElementById("customAlert");
   if (modal) {
@@ -286,6 +182,7 @@ function closeModal() {
   }
 }
 
+
 // Function to stop all functionalities
 function stopAllFunctionalities(patientIndex) {
   console.log(`Stopping all functionalities for patient ${patientIndex}`);
@@ -293,37 +190,10 @@ function stopAllFunctionalities(patientIndex) {
   const containerElement = document.getElementById(`container${patientIndex}`);
   fillElement.classList.remove("blinking");
   containerElement.classList.remove("blinking");
+  closeModal(patientIndex); // Close the modal specific to the patient
 }
 
-// Function to update connection status
-function updateConnectionStatus(fillPercentage, statusElement) {
-  if (fillPercentage === 0) {
-    statusElement.textContent = "Not Connected ❌";
-  } else {
-    statusElement.textContent = "Connected ✔️";
-  }
-}
-
-
-// Function to update block colors based on the data
-function updateBlockColors(data) {
-  Object.keys(data).forEach((key) => {
-    const patientIndex = key.replace('Monitoringdata', '');
-    const firebaseData = data[key];
-    const blockElement = document.getElementById(`pp${patientIndex}`);
-    if (blockElement) {
-      if (firebaseData <= 2) {
-        blockElement.style.backgroundColor = "white";
-      } else if(firebaseData <= 38){
-        blockElement.style.backgroundColor ="red";
-      } else{
-        blockElement.style.backgroundColor ="rgb(109, 238, 109)";
-      }
-    }
-  });
-}
-
-// Arrange containers according to data
+// Function to rearrange containers
 function rearrangeContainers() {
   const containerElements = document.querySelectorAll(".container");
   const containerArray = Array.from(containerElements);
@@ -385,16 +255,16 @@ document.addEventListener("DOMContentLoaded", (event) => {
       <div class="modal-content">
         <span id="close" class="close">&times;</span>
         <h1 id="p1">Patient - 01</h1>
-        <p>Warning: Low Saline Level!</p>
       </div>
     </div>
   `;
   document.body.insertAdjacentHTML("beforeend", modalHTML);
 
-  // Add event listener for closing the modal
-  document.getElementById("close").addEventListener("click", () => {
-    closeModal();
-  });
+  // Add event listener for close button
+  const closeButton = document.getElementById("close");
+  if (closeButton) {
+    closeButton.addEventListener("click", closeModal);
+  }
 
   // Start fetching data from Firebase
   fetchDataFromFirebase();
