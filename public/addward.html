@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Selection</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e6f0ff, #f3e8ff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            color: #e53e3e;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .success-message {
+            color: #38a169;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container animate__animated animate__fadeIn">
+        <h1>Patient Assignment</h1>
+        <form id="patientForm">
+            <div class="form-group" style="animation-delay: 0.1s;">
+                <label for="patientId">Saline ID</label>
+                <select id="patientId" required>
+                    <option value="">Select Saline ID</option>
+                </select>
+                <div class="error-message" id="patientIdError"></div>
+            </div>
+            
+            <div class="form-group" style="animation-delay: 0.2s;">
+                <label for="wardNo">Ward Number</label>
+                <input type="text" id="wardNo" required placeholder="Enter ward number">
+                <div class="error-message" id="wardNoError"></div>
+            </div>
+            
+            <div class="form-group" style="animation-delay: 0.3s;">
+                <label for="roomNo">Room Number</label>
+                <input type="text" id="roomNo" required placeholder="Enter room number">
+                <div class="error-message" id="roomNoError"></div>
+            </div>
+            
+            <div class="form-group" style="animation-delay: 0.4s;">
+                <label for="bedNo">Bed Number</label>
+                <input type="text" id="bedNo" required placeholder="Enter bed number">
+                <div class="error-message" id="bedNoError"></div>
+            </div>
+            
+            <button type="submit" class="animate__animated animate__fadeIn" style="animation-delay: 0.5s;">
+                Submit Assignment
+            </button>
+            
+            <div id="loading" class="loading"></div>
+            <div id="successMessage" class="success-message"></div>
+            <div id="errorMessage" class="error-message"></div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const form = document.getElementById('patientForm');
+            const loading = document.getElementById('loading');
+            const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Function to display error messages
+            const showError = (elementId, message) => {
+                const errorElement = document.getElementById(`${elementId}Error`);
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                }
+            };
+
+            // Function to clear all error messages
+            const clearErrors = () => {
+                const errorElements = document.querySelectorAll('.error-message');
+                errorElements.forEach(element => {
+                    element.textContent = '';
+                    element.style.display = 'none';
+                });
+            };
+
+            // Function to validate input
+            const validateInput = (formData) => {
+                clearErrors();
+                let isValid = true;
+
+                if (!formData.patientId) {
+                    showError('patientId', 'Please select a Patient ID');
+                    isValid = false;
+                }
+                if (!formData.wardNo) {
+                    showError('wardNo', 'Ward number is required');
+                    isValid = false;
+                }
+                if (!formData.roomNo) {
+                    showError('roomNo', 'Room number is required');
+                    isValid = false;
+                }
+                if (!formData.bedNo) {
+                    showError('bedNo', 'Bed number is required');
+                    isValid = false;
+                }
+
+                return isValid;
+            };
+
+            // Fetch patient IDs
+            try {
+                const response = await fetch('/api/patients');
+                const data = await response.json();
+                const select = document.getElementById('patientId');
+                
+                Object.keys(data).forEach(patientId => {
+                    const option = document.createElement('option');
+                    option.value = patientId;
+                    option.textContent = patientId;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching patient IDs:', error);
+                errorMessage.textContent = 'Failed to load patient IDs. Please refresh the page.';
+                errorMessage.style.display = 'block';
+            }
+
+            // Form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearErrors();
+                loading.style.display = 'block';
+                successMessage.style.display = 'none';
+                errorMessage.style.display = 'none';
+
+                const formData = {
+                    patientId: document.getElementById('patientId').value,
+                    wardNo: document.getElementById('wardNo').value,
+                    roomNo: document.getElementById('roomNo').value,
+                    bedNo: document.getElementById('bedNo').value
+                };
+
+                if (!validateInput(formData)) {
+                    loading.style.display = 'none';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/patient-assignment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        successMessage.textContent = 'Patient assignment saved successfully!';
+                        successMessage.style.display = 'block';
+                        form.reset();
+                    } else {
+                        throw new Error(result.error || 'Failed to save assignment');
+                    }
+                } catch (error) {
+                    console.error('Error submitting form:', error);
+                    errorMessage.textContent = 'Error saving patient assignment. Please try again.';
+                    errorMessage.style.display = 'block';
+                } finally {
+                    loading.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

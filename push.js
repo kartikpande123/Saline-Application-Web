@@ -4,13 +4,14 @@ const FIREBASE_HOST = "https://saline-level-monitoring-server-default-rtdb.fireb
 const FIREBASE_AUTH = "63XsfziiFUKSfiv7HccwGizwRimnjmspbDldBEFv";
 
 const initialMonitoringData = {
-  Monitoringdata1: 398.36,
+  Monitoringdata1: 300.36,
   Monitoringdata2: 575.42,
   Monitoringdata3: 318.52,
   Monitoringdata4: 373.15,
   Monitoringdata5: 441.40,
   Monitoringdata6: 534.28,
-  Monitoringdata7: 420.28
+  Monitoringdata7: 420.28,
+  Monitoringdata8: 487.50  // Added an 8th container
 };
 
 function pushDemoData() {
@@ -24,7 +25,9 @@ function pushDemoData() {
       Start_time3: currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
       Start_time4: currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
       Start_time5: currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
-      Start_time6: currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase()
+      Start_time6: currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
+      Start_time7: currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
+      Start_time8: currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase()
     },
     VEND_TIME: {
       Vend_time1: new Date(currentTime.getTime() + 3600000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
@@ -32,7 +35,9 @@ function pushDemoData() {
       Vend_time3: new Date(currentTime.getTime() + 3300000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
       Vend_time4: new Date(currentTime.getTime() + 3900000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
       Vend_time5: new Date(currentTime.getTime() + 4200000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
-      Vend_time6: new Date(currentTime.getTime() + 4800000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase()
+      Vend_time6: new Date(currentTime.getTime() + 4800000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
+      Vend_time7: new Date(currentTime.getTime() + 5400000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
+      Vend_time8: new Date(currentTime.getTime() + 6000000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase()
     },
     PREDICTION_TIME: {
       prediction_time1: new Date(currentTime.getTime() + 7200000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
@@ -40,7 +45,9 @@ function pushDemoData() {
       prediction_time3: new Date(currentTime.getTime() + 6600000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
       prediction_time4: new Date(currentTime.getTime() + 7800000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
       prediction_time5: new Date(currentTime.getTime() + 8400000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
-      prediction_time6: new Date(currentTime.getTime() + 9600000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase()
+      prediction_time6: new Date(currentTime.getTime() + 9600000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
+      prediction_time7: new Date(currentTime.getTime() + 10200000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase(),
+      prediction_time8: new Date(currentTime.getTime() + 10800000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase()
     }
   };
 
@@ -75,6 +82,7 @@ function simulateDataDecrease() {
               if (newValue < 0) newValue = 0;
               updates[key] = Number(newValue.toFixed(2));
               
+              
               // Update percentage based on the new Monitoringdata value
               let initialValue = initialMonitoringData[key];
               let adjustedInitialValue = initialValue - 40; // Subtract 40 grams from initial value
@@ -107,4 +115,44 @@ function simulateDataDecrease() {
       });
   }, 5000); // Update every 5 seconds
 }
+
 pushDemoData();
+
+function setupPatientIds() {
+  // Check if patientIds collection exists first
+  axios.get(`${FIREBASE_HOST}/patientIds.json?auth=${FIREBASE_AUTH}`)
+    .then((response) => {
+      if (!response.data) {
+        // Create patient structure
+        const patients = {};
+        
+        // Create 8 patients with their associated data
+        for (let i = 1; i <= 8; i++) {
+          patients[`saline-${i}`] = {
+            monitoringData: `Monitoringdata${i}`,
+            percentage: `percentage${i}`,
+            startTime: `Start_time${i}`,
+            vendTime: `Vend_time${i}`,
+            predictionTime: `prediction_time${i}`
+          };
+        }
+
+        // Push the patient structure to Firebase
+        axios.put(`${FIREBASE_HOST}/patientIds.json?auth=${FIREBASE_AUTH}`, patients)
+          .then((response) => {
+            console.log("Patient IDs structure created successfully:", response.data);
+          })
+          .catch((error) => {
+            console.log("Error creating patient IDs structure:", error);
+          });
+      } else {
+        console.log("Patient IDs structure already exists");
+      }
+    })
+    .catch((error) => {
+      console.log("Error checking patient IDs:", error);
+    });
+}
+
+// Add this line after your existing pushDemoData() call
+setupPatientIds();

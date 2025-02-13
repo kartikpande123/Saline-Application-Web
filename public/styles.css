@@ -253,6 +253,7 @@ h1 {
   align-items: center;
   justify-content: center;
   gap: 5rem;
+  margin-top: 5px;
 }
 
 #header img {

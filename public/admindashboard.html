@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saline Sense - Admin Dashboard</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* All existing styles remain exactly the same */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      :root {
+        --primary-blue: #4a90e2;
+        --secondary-blue: #357abd;
+        --light-blue: #ebf3fc;
+        --lighter-blue: #f5f9ff;
+        --dark-blue: #2c5282;
+        --accent-blue: #63b3ed;
+        --text-primary: #2d3748;
+        --text-secondary: #4a5568;
+        --white: #ffffff;
+        --gradient-start: #4a90e2;
+        --gradient-end: #63b3ed;
+      }
+
+      body {
+        background: linear-gradient(
+          135deg,
+          var(--lighter-blue),
+          var(--light-blue)
+        );
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .header {
+        background: linear-gradient(
+          to right,
+          var(--white),
+          var(--lighter-blue)
+        );
+        padding: 1rem 2rem;
+        box-shadow: 0 2px 15px rgba(74, 144, 226, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        z-index: 10;
+        border-bottom: 1px solid rgba(74, 144, 226, 0.1);
+      }
+
+      .logo {
+        width: 100px;
+        height: 100px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: linear-gradient(
+          135deg,
+          var(--gradient-start),
+          var(--gradient-end)
+        );
+        box-shadow: 0 2px 10px rgba(74, 144, 226, 0.2);
+        animation: pulse 2s infinite;
+      }
+
+      .logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .brand-name {
+        font-size: 2.8rem;
+        font-weight: 700;
+        background: linear-gradient(
+          to right,
+          var(--primary-blue),
+          var(--dark-blue)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.5px;
+        animation: fadeIn 1s ease-out;
+      }
+
+      .logout-btn {
+        padding: 0.75rem 1.75rem;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(
+          135deg,
+          var(--primary-blue),
+          var(--secondary-blue)
+        );
+        color: var(--white);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(74, 144, 226, 0.2);
+        animation: slideInRight 0.8s ease-out;
+      }
+
+      .logout-btn:hover {
+        box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        transform: translateY(-2px);
+        background: linear-gradient(
+          135deg,
+          var(--secondary-blue),
+          var(--dark-blue)
+        );
+      }
+
+      .main-content {
+        flex-grow: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        position: relative;
+      }
+
+      .main-content::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          45deg,
+          rgba(74, 144, 226, 0.03) 0%,
+          rgba(99, 179, 237, 0.03) 100%
+        );
+        z-index: -1;
+      }
+
+      .button-container {
+        display: flex;
+        gap: 2rem;
+        animation: fadeInUp 0.8s ease-out;
+      }
+
+      .admin-btn {
+        padding: 2rem 3rem;
+        border: none;
+        border-radius: 15px;
+        background: var(--white);
+        color: var(--text-primary);
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 144, 226, 0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        min-width: 200px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .admin-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          var(--primary-blue),
+          var(--accent-blue)
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+      }
+
+      .admin-btn i {
+        font-size: 2rem;
+        color: var(--primary-blue);
+        transition: all 0.3s ease;
+        z-index: 2;
+        position: relative;
+      }
+
+      .admin-btn span {
+        position: relative;
+        z-index: 2;
+      }
+
+      .admin-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(74, 144, 226, 0.2);
+      }
+
+      .admin-btn:hover::before {
+        opacity: 1;
+      }
+
+      .admin-btn:hover i,
+      .admin-btn:hover span {
+        color: var(--white);
+      }
+
+      /* Toast notification styles */
+      .toast-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        display: none;
+      }
+
+      .toast-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
+        display: none;
+        z-index: 999;
+      }
+
+      .toast {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+        min-width: 300px;
+        text-align: center;
+        animation: toastSlideIn 0.3s ease forwards;
+      }
+
+      .toast-title {
+        font-size: 1.2rem;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        font-weight: 600;
+      }
+
+      .toast-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1.5rem;
+      }
+
+      .toast-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .toast-btn-confirm {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+        color: var(--white);
+      }
+
+      .toast-btn-cancel {
+        background: #f3f4f6;
+        color: var(--text-secondary);
+      }
+
+      .toast-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      @keyframes toastSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Keep existing animations */
+      @keyframes slideInLeft {
+        from {
+          opacity: 0;
+          transform: translateX(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(74, 144, 226, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(74, 144, 226, 0);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .header {
+          padding: 1rem;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .brand-name {
+          font-size: 1.4rem;
+        }
+
+        .button-container {
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .admin-btn {
+          padding: 1.5rem 2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-section">
+            <div class="logo">
+                <img src="login-img-pc.jpg" alt="Saline Sense Logo" />
+            </div>
+        </div>
+        <div class="brand-name">Saline Sense</div>
+        <button class="logout-btn" onclick="handleLogout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="button-container">
+        <button class="admin-btn" onclick="handleAddPatient()">
+          <i class="fas fa-user-plus"></i>
+          <span>Add Patient</span>
+        </button>
+        <button class="admin-btn" onclick="handleAddWards()">
+          <i class="fas fa-hospital"></i>
+          <span>Add Wards</span>
+        </button>
+      </div>
+    </main>
+
+    <!-- Toast Elements -->
+    <div class="toast-overlay" id="toastOverlay"></div>
+    <div class="toast-container" id="toastContainer">
+      <div class="toast">
+        <div class="toast-title">Confirm Logout</div>
+        <div class="toast-content">Are you sure you want to logout?</div>
+        <div class="toast-buttons">
+          <button class="toast-btn toast-btn-cancel" onclick="hideToast()">Cancel</button>
+          <button class="toast-btn toast-btn-confirm" onclick="confirmLogout()">Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Button click animations and handlers
+      function addClickAnimation(element) {
+        element.style.transform = "scale(0.95)";
+        setTimeout(() => {
+          element.style.transform = "";
+        }, 200);
+      }
+
+      function handleAddPatient() {
+        const btn = event.currentTarget;
+        addClickAnimation(btn);
+        // Navigate to addpatients.html
+        window.location.href = 'addpatients.html';
+      }
+
+      function handleAddWards() {
+        const btn = event.currentTarget;
+        addClickAnimation(btn);
+        // Navigate to addward.html
+        window.location.href = 'addward.html';
+      }
+
+      function handleLogout() {
+        const btn = event.currentTarget;
+        addClickAnimation(btn);
+        showToast();
+      }
+
+      function showToast() {
+        document.getElementById('toastOverlay').style.display = 'block';
+        document.getElementById('toastContainer').style.display = 'block';
+      }
+
+      function hideToast() {
+        document.getElementById('toastOverlay').style.display = 'none';
+        document.getElementById('toastContainer').style.display = 'none';
+      }
+
+      function confirmLogout() {
+        hideToast();
+        window.location.href = 'login.html';
+      }
+
+      // Add smooth entrance animations when page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelector(".main-content").style.opacity = "1";
+      });
+
+      // Close toast when clicking overlay
+      document.getElementById('toastOverlay').addEventListener('click', hideToast);
+    </script>
+  </body>
+</html>

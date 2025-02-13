@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Login</title>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f8f9fd 0%, #e9ecef 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #leftImage{
+            width: 200px;
+            height: 250px;
+        }
+
+        .login-container {
+            display: flex;
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transform: perspective(1000px) rotateX(-10deg) scale(0.9);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .login-container.active {
+            transform: perspective(1000px) rotateX(0) scale(1);
+            opacity: 1;
+        }
+
+        .login-image-section {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+        }
+
+        .login-image-section img {
+            max-width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+        }
+
+        .login-form-section {
+            flex: 1;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .main-logo {
+            max-width: 180px;
+            object-fit: contain;
+        }
+
+        .login-box {
+            width: 100%; 
+            padding: 20px; 
+            border: 2px solid #000000; /* Black border */
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Shadow effect */
+            background-color: #ffffff; /* White background */
+            transition: all 0.3s ease; /* Smooth transition */
+        }
+
+        .login-box:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3); /* Bigger shadow on hover */
+            transform: translateY(-5px); /* Lift the box slightly */
+        }
+
+        h1 {
+            color: #3a4276;
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            text-align: center;
+        }
+
+        p {
+            color: #6c757d;
+            font-size: 15px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 15px 15px 50px;
+            border: 2px solid #e0e4e8;
+            border-radius: 10px;
+            font-size: 15px;
+            color: #495057;
+            transition: all 0.4s ease;
+            background-color: #f9fafb;
+        }
+
+        .input-group input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            background-color: white;
+        }
+
+        .input-group .icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #6366f1;
+            opacity: 0.7;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6366f1;
+            opacity: 0.7;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to right, #6366f1, #4f46e5);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.4s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(to right, #4f46e5, #6366f1);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .partnership-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        .partnership-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .partnership-content {
+            display: flex;
+            gap: 50px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .partnership-image {
+            width: 180px;
+            opacity: 0;
+            transform: perspective(1000px) rotateY(90deg);
+            transition: all 1s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .partnership-image.slide-in-left {
+            opacity: 1;
+            transform: perspective(1000px) rotateY(0);
+        }
+
+        .partnership-image.slide-in-right {
+            opacity: 1;
+            transform: perspective(1000px) rotateY(0);
+        }
+
+        /* New Admin Login Button Styles */
+        .admin-login-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .admin-login-btn:hover {
+            background-color: #e0e0e0;
+            transform: rotate(45deg) scale(1.1);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+
+        .admin-login-btn i {
+            color: #6366f1;
+            font-size: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                flex-direction: column;
+            }
+
+            .login-image-section {
+                display: none;
+            }
+
+            .login-form-section {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="mainContainer">
+        <div class="login-image-section">
+            <img src="login-img-pc.jpg" alt="Saline Logo">
+        </div>
+
+        <div class="login-form-section">
+            <div class="login-box">
+                <h1>Welcome Back</h1>
+                <p>Login to your secure hospital account</p>
+                
+                <form id="loginForm" action="home.html">
+                    <div class="input-group">
+                        <input type="tel" placeholder="Phone Number" required>
+                        <span class="icon"><i class="bi bi-phone"></i></span>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="password" id="passwordInput" placeholder="Password" required>
+                        <span class="icon"><i class="bi bi-lock"></i></span>
+                        <span class="password-toggle" id="passwordToggle">
+                            <i class="bi bi-eye-slash" id="passwordToggleIcon"></i>
+                        </span>
+                    </div>
+                    
+                    <button type="submit" class="login-btn">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="partnership-overlay" id="partnershipOverlay">
+        <div class="partnership-content">
+            <img src="login-img-pc.jpg" id="leftImage" class="partnership-image">
+            <!-- <img src="shake-hand-img.png" id="leftImage" class="partnership-image"> -->
+            <img src="sdmlogo2.png" id="rightImage" class="partnership-image">
+        </div>
+    </div>
+
+    <!-- New Admin Login Button -->
+    <button class="admin-login-btn" id="adminLoginBtn">
+        <i class="bi bi-gear"></i>
+    </button>
+
+    <script>
+        // Fade in container on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('mainContainer');
+            container.classList.add('active');
+
+            // Password toggle functionality
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordToggle = document.getElementById('passwordToggle');
+            const passwordToggleIcon = document.getElementById('passwordToggleIcon');
+
+            passwordToggle.addEventListener('click', () => {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    passwordToggleIcon.classList.remove('bi-eye-slash');
+                    passwordToggleIcon.classList.add('bi-eye');
+                } else {
+                    passwordInput.type = 'password';
+                    passwordToggleIcon.classList.remove('bi-eye');
+                    passwordToggleIcon.classList.add('bi-eye-slash');
+                }
+            });
+
+            // Admin login button functionality
+            const adminLoginBtn = document.getElementById('adminLoginBtn');
+            adminLoginBtn.addEventListener('click', () => {
+                window.location.href = 'adminlogin.html'; // Redirect to admin login page
+            });
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const mainContainer = document.getElementById('mainContainer');
+            const partnershipOverlay = document.getElementById('partnershipOverlay');
+            const leftImage = document.getElementById('leftImage');
+            const rightImage = document.getElementById('rightImage');
+            
+            // Hide main container
+            mainContainer.style.opacity = '0';
+            mainContainer.style.transform = 'perspective(1000px) rotateX(-10deg) scale(0.9)';
+            
+            // Show overlay
+            partnershipOverlay.classList.add('active');
+            
+            // Animate images
+            setTimeout(() => {
+                leftImage.classList.add('slide-in-left');
+                rightImage.classList.add('slide-in-right');
+            }, 100);
+            
+            // Redirect after animation
+            setTimeout(() => {
+                window.location.href = 'home.html';
+            }, 1000);
+        });
+
+        // Reset page when navigating back
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                const mainContainer = document.getElementById('mainContainer');
+                const partnershipOverlay = document.getElementById('partnershipOverlay');
+                const leftImage = document.getElementById('leftImage');
+                const rightImage = document.getElementById('rightImage');
+
+                // Reset main container
+                mainContainer.classList.add('active');
+                mainContainer.style.opacity = '1';
+                mainContainer.style.transform = 'perspective(1000px) rotateX(0) scale(1)';
+
+                // Reset overlay
+                partnershipOverlay.classList.remove('active');
+                leftImage.classList.remove('slide-in-left');
+                rightImage.classList.remove('slide-in-right');
+            }
+        });
+    </script>
+</body>
+</html>

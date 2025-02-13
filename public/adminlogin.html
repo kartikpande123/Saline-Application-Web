@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #f3f4ff 0%, #e6e9ff 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .login-container {
+        width: 100%;
+        max-width: 1000px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        display: flex;
+        overflow: hidden;
+      }
+
+      .logo-section {
+        width: 50%;
+        background-color: #f3f0ff;
+        padding: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* .logo-circle {
+        width: 280px;
+        height: 280px;
+        background-color: #e0d4ff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      } */
+
+      .logo-content {
+        width: 230px;
+        height: 230px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 50%; /* Make the container circular */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .logo-content img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* This will ensure the image covers the area nicely */
+        object-position: center; /* Centers the image */
+        border-radius: 50%; /* Makes the image circular */
+      }
+
+      .form-section {
+        width: 50%;
+        padding: 40px;
+      }
+
+      .form-container {
+        max-width: 400px;
+        margin: 0 auto;
+      }
+
+      .form-header {
+        margin-bottom: 40px;
+      }
+
+      .form-header h1 {
+        font-size: 32px;
+        color: #1a1a1a;
+        margin-bottom: 8px;
+        font-weight: 700;
+      }
+
+      .form-header p {
+        color: #666;
+        font-size: 16px;
+      }
+
+      .input-group {
+        margin-bottom: 20px;
+        position: relative;
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background-color: #fff;
+      }
+
+      .input-group input:focus {
+        border-color: #6b46c1;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.2);
+      }
+
+      .password-toggle {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #666;
+      }
+
+      .login-btn {
+        width: 100%;
+        padding: 14px;
+        background: #6b46c1;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .login-btn:hover:not(:disabled) {
+        background: #553c9a;
+        transform: translateY(-1px);
+      }
+
+      .login-btn:disabled {
+        background: #a0aec0;
+        cursor: not-allowed;
+      }
+
+      #toast {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #e53e3e;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        display: none;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      @media (max-width: 768px) {
+        .logo-section {
+          display: none;
+        }
+        .form-section {
+          width: 100%;
+        }
+        .login-container {
+          max-width: 500px;
+        }
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        10%,
+        30%,
+        50%,
+        70%,
+        90% {
+          transform: translateX(-5px);
+        }
+        20%,
+        40%,
+        60%,
+        80% {
+          transform: translateX(5px);
+        }
+      }
+
+      .shake {
+        animation: shake 0.5s linear;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="logo-section">
+        <div class="logo-circle">
+          <div class="logo-content">
+            <img src="spdand2.jpg" alt="" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-container">
+          <div class="form-header">
+            <h1>Admin Login</h1>
+            <p>Login to your secure admin account</p>
+          </div>
+
+          <form id="loginForm">
+            <div class="input-group">
+              <input type="text" id="adminId" placeholder="Admin ID" required />
+            </div>
+
+            <div class="input-group">
+              <input
+                type="password"
+                id="adminPassword"
+                placeholder="Password"
+                required
+              />
+              <div class="password-toggle" id="togglePassword">
+                <svg
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <button type="submit" class="login-btn" id="loginBtn" disabled>
+              Login
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+      // Get DOM elements
+      const loginForm = document.getElementById("loginForm");
+      const adminIdInput = document.getElementById("adminId");
+      const adminPasswordInput = document.getElementById("adminPassword");
+      const loginBtn = document.getElementById("loginBtn");
+      const togglePassword = document.getElementById("togglePassword");
+      const toast = document.getElementById("toast");
+
+      // Toggle password visibility
+      togglePassword.addEventListener("click", function () {
+        const type =
+          adminPasswordInput.type === "password" ? "text" : "password";
+        adminPasswordInput.type = type;
+
+        // Toggle eye icon
+        this.innerHTML =
+          type === "password"
+            ? '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>'
+            : '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>';
+      });
+
+      // Show toast message
+      function showToast(message) {
+        toast.textContent = message;
+        toast.style.display = "block";
+        setTimeout(() => {
+          toast.style.display = "none";
+        }, 3000);
+      }
+
+      // Handle form submission
+      loginForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const adminId = adminIdInput.value.trim();
+        const adminPassword = adminPasswordInput.value.trim();
+
+        // Valid credentials
+        const validCredentials = [{ id: "admin", password: "123" }];
+
+        // Check credentials
+        const isValidLogin = validCredentials.some(
+          (cred) =>
+            cred.id.toLowerCase() === adminId.toLowerCase() &&
+            cred.password === adminPassword
+        );
+
+        if (isValidLogin) {
+          window.location.replace("admindashboard.html");
+        } else {
+          loginForm.classList.add("shake");
+          showToast("Invalid Admin ID or Password");
+          setTimeout(() => {
+            loginForm.classList.remove("shake");
+          }, 500);
+        }
+      });
+
+      // Enable/disable login button based on input
+      function validateInputs() {
+        const adminId = adminIdInput.value.trim();
+        const adminPassword = adminPasswordInput.value.trim();
+        loginBtn.disabled = !(adminId && adminPassword);
+      }
+
+      adminIdInput.addEventListener("input", validateInputs);
+      adminPasswordInput.addEventListener("input", validateInputs);
+    </script>
+  </body>
+</html>
